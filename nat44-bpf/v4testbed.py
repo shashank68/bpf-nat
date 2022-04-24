@@ -20,20 +20,16 @@ out_h2 = Node("h2")
 (r_h2, h2_r) = connect(r, out_h2, "r-h2", "h2-r")
 
 h1_r.set_address("10.0.1.2/24")
-r_h1.set_address("10.0.1.1/24")
+r_h1.set_address("10.0.1.1/24") 
 
 
 with r:
-    exec_subprocess(f"ip addr add 12.0.0.253/24 dev {r_h1.id}")
+    os.system("ip route add 12.0.0.0/24 via 10.0.1.2")
 
-# r.add_route("12.0.0.1/24", r_h1, "10.0.1.1")    
 
 r_h2.set_address("11.0.0.1/24")
 h2_r.set_address("11.0.0.2/24")
 
-# # r.add_route("11.0.1.0/24", r_h2)
-# with r:
-#     exec_subprocess("ip route add 11.0.1.0/24 dev r-h2 via 11.0.")
 out_h2.add_route("DEFAULT", h2_r)
 int_h1.add_route("DEFAULT", h1_r)
 
@@ -44,7 +40,7 @@ print(r_h1.name)
 print("######## Make complete #####")
 
 with r:
-    os.system(f"sudo ./nat64 -i {r_h1.name} -4 12.0.0.0/24 -a 64:ff9b::/8")
+    os.system(f"sudo ./nat64 -i {r_h1.id} -4 12.0.0.0/24 -a 64:ff9b::/8")
 
 print("nat64 running")
 
@@ -59,7 +55,9 @@ wireshark_proc.start()
 
 cmd2 = f"ip netns exec {out_h2.id} wireshark"
 wireshark_proc1 = Process(target=exec_subprocess, args=(cmd2,))
-# wireshark_proc1.start()
+cmd2 = f"ip netns exec {int_h1.id} wireshark"
+wireshark_proc2 = Process(target=exec_subprocess, args=(cmd2,))
+wireshark_proc2.start()
 
 time.sleep(20)
 

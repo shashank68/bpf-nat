@@ -351,7 +351,6 @@ int teardown(struct nat64_user_config *cfg)
 
 int main(int argc, char *argv[])
 {
-	struct v6_trie_key prefix_key = {};
 	struct nat64_user_config cfg = {};
 	struct nat64_kern *obj;
 	unsigned int num_addr;
@@ -380,7 +379,6 @@ int main(int argc, char *argv[])
 	num_addr = (cfg.c.v4_prefix | ~cfg.c.v4_mask) - cfg.c.v4_prefix - 2;
 
 	obj->bss->config = cfg.c;
-	bpf_map__resize(obj->maps.v6_state_map, num_addr);
 	bpf_map__resize(obj->maps.v4_reversemap, num_addr);
 	bpf_map__resize(obj->maps.reclaimed_addrs, num_addr);
 
@@ -389,19 +387,6 @@ int main(int argc, char *argv[])
 		libbpf_strerror(err, buf, sizeof(buf));
 		fprintf(stderr, "Couldn't load BPF skeleton: %s\n", buf);
 		goto out;
-	}
-
-	if (cfg.v6_allow_pxlen) {
-		__u32 value = 0;
-
-		prefix_key.t.prefixlen = cfg.v6_allow_pxlen;
-		prefix_key.addr = cfg.v6_allow;
-		err = bpf_map_update_elem(bpf_map__fd(obj->maps.allowed_v6_src),
-					  &prefix_key, &value, 0);
-		if (err) {
-			fprintf(stderr, "Couldn't insert allowed prefix\n");
-			goto out;
-		}
 	}
 
 
