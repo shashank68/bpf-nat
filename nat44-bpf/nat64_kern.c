@@ -119,6 +119,7 @@ static int nat64_handle_v4(struct __sk_buff *skb, struct hdr_cursor *nh)
 
         dst_hdr.tos = iph->tos;         //->priority << 4 | (ip6h->flow_lbl[0] >> 4);
         dst_hdr.tot_len = iph->tot_len; // (bpf_ntohs(ip6h->payload_len) + sizeof(dst_hdr));
+        dst_hdr.check = 0;
         dst_hdr.check = csum_fold_helper(bpf_csum_diff((__be32 *)&dst_hdr, 0, (__be32 *)&dst_hdr, sizeof(dst_hdr), 0));
 
         data = (void *)(unsigned long long)skb->data;
