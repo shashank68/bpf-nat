@@ -172,8 +172,7 @@ static struct v4_addr_state *alloc_new_state(__u32 *internal_src_v4)
         __u32 src_v4 = 0;
         int i;
 
-        for (i = 0; i < 10; i++)
-        {
+        for (i = 0; i < 10; i++)  {
                 __u32 next_v4, next_addr;
 
                 next_addr = __sync_fetch_and_add(&config.next_addr, 0);
