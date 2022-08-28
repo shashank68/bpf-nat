@@ -50,3 +50,4 @@ iproute: iproute2-5.15.0
     sudo ip netns exec h2 python3 ret_pkt.py
     ```
 
+- The packets can be analyzed using wireshark at hosts or router nodes.
