@@ -1,9 +1,9 @@
-#ifndef __NAT64_H__
-#define __NAT64_H__
+#ifndef __NAT44_H__
+#define __NAT44_H__
 
 #include <linux/in6.h>
 
-struct nat64_config
+struct nat44_config
 {
   struct in6_addr v6_prefix;
   __u64 timeout_ns;

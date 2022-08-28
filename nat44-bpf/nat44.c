@@ -20,8 +20,8 @@
 #include <libmnl/libmnl.h>
 #include <linux/rtnetlink.h>
 
-#include "nat64.h"
-#include "nat64_kern.skel.h"
+#include "nat44.h"
+#include "nat44_kern.skel.h"
 
 #define NS_PER_SECOND 1000000000UL
 #define NS_PER_MS 1000000UL
@@ -31,13 +31,13 @@ static const struct option long_options[] = {
 	{ "unload",           no_argument,       NULL, 'u' },
 	{ "interface",        required_argument, NULL, 'i' }, // Name of interface to run on
 	{ "allowed-src",      required_argument, NULL, 'a' }, // v4 prefix to allow as source
-	{ "v4-prefix",        required_argument, NULL, '4' }, // v4 prefix to use for nat64
+	{ "v4-prefix",        required_argument, NULL, '4' }, // v4 prefix to use for nat44
 	{ "timeout",          required_argument, NULL, 't' }, // Address mapping timeout interval in s
 	{ 0, 0, NULL, 0 }
 };
 
-struct nat64_user_config {
-	struct nat64_config c;
+struct nat44_user_config {
+	struct nat44_config c;
 	int ifindex;
 	char ifname[IF_NAMESIZE+1];
 	struct in6_addr v6_allow; // should be ipv4 allowed subnet
@@ -67,7 +67,7 @@ static int parse_v6_prefix(char *str, struct in6_addr *v6addr)
 	return pxlen;
 }
 
-static int parse_arguments(int argc, char *argv[], struct nat64_user_config *config)
+static int parse_arguments(int argc, char *argv[], struct nat44_user_config *config)
 {
 	struct in6_addr v6addr;
 	struct in_addr v4addr;
@@ -180,7 +180,7 @@ static int parse_arguments(int argc, char *argv[], struct nat64_user_config *con
 	return 0;
 }
 
-static int do_v4_neigh(struct mnl_socket *nl, struct nat64_user_config *cfg, bool create)
+static int do_v4_neigh(struct mnl_socket *nl, struct nat44_user_config *cfg, bool create)
 {
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh;
@@ -248,7 +248,7 @@ out:
 	return err;
 }
 
-static int do_v4_route(struct mnl_socket *nl, struct nat64_user_config *cfg, bool create)
+static int do_v4_route(struct mnl_socket *nl, struct nat44_user_config *cfg, bool create)
 {
 	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct nlmsghdr *nlh; 
@@ -302,7 +302,7 @@ out:
 	return err;
 }
 
-static int do_netlink(struct nat64_user_config *cfg, bool create)
+static int do_netlink(struct nat44_user_config *cfg, bool create)
 {
 	struct mnl_socket *nl;
 	int err = 0;
@@ -329,7 +329,7 @@ out:
 }
 
 
-int teardown(struct nat64_user_config *cfg)
+int teardown(struct nat44_user_config *cfg)
 {
 	DECLARE_LIBBPF_OPTS(bpf_tc_hook, hook,
 			    .attach_point = BPF_TC_INGRESS | BPF_TC_EGRESS,
@@ -351,8 +351,8 @@ int teardown(struct nat64_user_config *cfg)
 
 int main(int argc, char *argv[])
 {
-	struct nat64_user_config cfg = {};
-	struct nat64_kern *obj;
+	struct nat44_user_config cfg = {};
+	struct nat44_kern *obj;
 	unsigned int num_addr;
 	char buf[100];
 	int err = 0;
@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 	if (cfg.unload)
 		return teardown(&cfg);
 
-	obj = nat64_kern__open();
+	obj = nat44_kern__open();
 	err = libbpf_get_error(obj);
 	if (err) {
 		libbpf_strerror(err, buf, sizeof(buf));
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 	bpf_map__resize(obj->maps.v4_reversemap, num_addr);
 	bpf_map__resize(obj->maps.reclaimed_addrs, num_addr);
 
-	err = nat64_kern__load(obj);
+	err = nat44_kern__load(obj);
 	if (err) {
 		libbpf_strerror(err, buf, sizeof(buf));
 		fprintf(stderr, "Couldn't load BPF skeleton: %s\n", buf);
@@ -390,14 +390,14 @@ int main(int argc, char *argv[])
 	}
 
 
-	attach_ingress.prog_fd = bpf_program__fd(obj->progs.nat64_ingress);
+	attach_ingress.prog_fd = bpf_program__fd(obj->progs.nat44_ingress);
 	if (attach_ingress.prog_fd < 0) {
 		fprintf(stderr, "Couldn't find ingress program\n");
 		err = -ENOENT;
 		goto out;
 	}
 
-	attach_egress.prog_fd = bpf_program__fd(obj->progs.nat64_egress);
+	attach_egress.prog_fd = bpf_program__fd(obj->progs.nat44_egress);
 	if (attach_egress.prog_fd < 0) {
 		fprintf(stderr, "Couldn't find egress program\n");
 		err = -ENOENT;
@@ -433,6 +433,6 @@ int main(int argc, char *argv[])
 	// }
 
 out:
-	nat64_kern__destroy(obj);
+	nat44_kern__destroy(obj);
 	return err;
 }

@@ -13,7 +13,7 @@ MAKEFLAGS += --no-print-directory
 Q = @
 endif
 
-SUBDIRS := nat64-bpf
+SUBDIRS := nat64-bpf nat44-bpf
 .PHONY: check_submodule help clobber distclean clean $(SUBDIRS)
 
 all: lib $(SUBDIRS)

@@ -39,9 +39,9 @@ print(os.system("sudo make"))
 print("######## Build complete #####")
 
 with r:
-    os.system(f"sudo ./nat64 -i {r_h1.id} -4 12.0.0.0/24 -a 64:ff9b::/8")
+    os.system(f"sudo ./nat44 -i {r_h1.id} -4 12.0.0.0/24 -a 64:ff9b::/8")
 
-print("nat64 running")
+print("nat44 running")
 
 print("starting wireshark")
 

@@ -7,11 +7,11 @@
 #include <linux/pkt_cls.h>
 #include <stdbool.h>
 #include "../include/xdp/parsing_helpers.h"
-#include "nat64.h"
+#include "nat44.h"
 
 char _license[] SEC("license") = "GPL";
 
-struct nat64_config config;
+struct nat44_config config;
 
 struct
 {
@@ -43,7 +43,7 @@ struct
 #ifdef DEBUG
 #define DBG(fmt, ...)                                      \
         ({                                                 \
-                char ____fmt[] = "nat64: " fmt;            \
+                char ____fmt[] = "nat44: " fmt;            \
                 bpf_trace_printk(____fmt, sizeof(____fmt), \
                                  ##__VA_ARGS__);           \
         })
@@ -59,7 +59,7 @@ static __always_inline __u16 csum_fold_helper(__u32 csum)
         return ~sum;
 }
 
-static int nat64_handle_v4(struct __sk_buff *skb, struct hdr_cursor *nh)
+static int nat44_handle_v4(struct __sk_buff *skb, struct hdr_cursor *nh)
 {
         void *data_end = (void *)(unsigned long long)skb->data_end;
         void *data = (void *)(unsigned long long)skb->data;
@@ -216,7 +216,7 @@ err:
 }
 
 // Handle incoming ipv4 from internal network, Translate addr & send to public
-static int nat64_handle_ingress(struct __sk_buff *skb, struct hdr_cursor *nh)
+static int nat44_handle_ingress(struct __sk_buff *skb, struct hdr_cursor *nh)
 {
         DBG("v4_ingress: Got an IPV4 packet\n");
         void *data_end = (void *)(unsigned long long)skb->data_end;
@@ -325,7 +325,7 @@ out:
         return ret;
 }
 
-static int nat64_handler(struct __sk_buff *skb, bool egress)
+static int nat44_handler(struct __sk_buff *skb, bool egress)
 {
         void *data_end = (void *)(unsigned long long)skb->data_end;
         void *data = (void *)(unsigned long long)skb->data;
@@ -339,23 +339,23 @@ static int nat64_handler(struct __sk_buff *skb, bool egress)
         DBG("Protocol: %x ;;\n", bpf_ntohs(eth_type));
         if (eth_type == bpf_htons(ETH_P_IP) && egress) {
                 DBG("v4_egress: Got an IP packet from egress");
-                return nat64_handle_v4(skb, &nh);
+                return nat44_handle_v4(skb, &nh);
         }
         // // ingress ipv4 handling. From inside network, allocate a state & send
         else if (eth_type == bpf_htons(ETH_P_IP) && !egress) {
                 DBG("v4: ingress from inside network to public");
-                return nat64_handle_ingress(skb, &nh);
+                return nat44_handle_ingress(skb, &nh);
         }
         return TC_ACT_OK;
 }
 SEC("classifier")
-int nat64_egress(struct __sk_buff *skb)
+int nat44_egress(struct __sk_buff *skb)
 {
-        return nat64_handler(skb, true);
+        return nat44_handler(skb, true);
 }
 
 SEC("classifier")
-int nat64_ingress(struct __sk_buff *skb)
+int nat44_ingress(struct __sk_buff *skb)
 {
-        return nat64_handler(skb, false);
+        return nat44_handler(skb, false);
 }
