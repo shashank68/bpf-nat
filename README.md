@@ -28,6 +28,18 @@ iproute: iproute2-5.15.0
     sudo apt install linux-tools-common linux-tools-generic
     ```
 
+## Topology:
+
+```
+h1 --------- r --------- h2 
+```
+> h1: host in a private network
+
+> r: router (nat gateway)
+
+> h2: host outside the private network
+
+
 ## Running:
 
 - Change directory to nat44-bpf / nat64-bpf
