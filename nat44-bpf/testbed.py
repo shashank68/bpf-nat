@@ -53,5 +53,10 @@ cmd2 = f"ip netns exec {int_h1.id} wireshark"
 wireshark_proc2 = Process(target=exec_subprocess, args=(cmd2,))
 wireshark_proc2.start()
 
+print("Starting wireshark in the router node")
+cmd = f"ip netns exec {r.id} wireshark"
+wireshark_proc = Process(target=exec_subprocess, args=(cmd,))
+wireshark_proc.start()
+
 
 time.sleep(3000)
