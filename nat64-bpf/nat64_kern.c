@@ -1,5 +1,4 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-/* Copyright 2021 Toke Høiland-Jørgensen <toke@toke.dk> */
 
 
 #include <linux/bpf.h>
