@@ -29,9 +29,7 @@ with r:
 r_h2.set_address("11.0.1.1/24")
 h2_r.set_address("11.0.1.2/24")
 
-# # r.add_route("11.0.1.0/24", r_h2)
-# with r:
-#     exec_subprocess("ip route add 11.0.1.0/24 dev r-h2 via 11.0.")
+
 out_h2.add_route("DEFAULT", h2_r)
 int_h1.add_route("DEFAULT", h1_r)
 

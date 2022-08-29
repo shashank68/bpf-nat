@@ -425,13 +425,7 @@ int main(int argc, char *argv[])
 			hook.ifindex);
 		goto out;
 	}
-
-	// err = do_netlink(&cfg, true);
-	// if (err) {
-	// 	fprintf(stderr, "Couldn't create route: %s\n", strerror(-err));
-	// 	err = teardown(&cfg);
-	// }
-
+	
 out:
 	nat44_kern__destroy(obj);
 	return err;
